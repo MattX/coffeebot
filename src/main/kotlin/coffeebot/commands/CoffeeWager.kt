@@ -154,7 +154,7 @@ val list = Command("!list", "List bets") { message ->
         val bet2 = Coffee(row[CoffeeWager.coffees2])
         betString.append("__$bet1")
         if (bet1 != bet2) {
-            betString.append("to $bet2")
+            betString.append(" to $bet2")
         }
         betString.append("__ ")
 
