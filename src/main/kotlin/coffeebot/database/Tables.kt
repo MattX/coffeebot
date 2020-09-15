@@ -12,6 +12,7 @@ enum class WagerState {
     Accepted,
     Canceled,
     Completed,
+    Paid,
 }
 
 object CoffeeWager: IntIdTable() {

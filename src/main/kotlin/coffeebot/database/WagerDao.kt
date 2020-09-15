@@ -114,6 +114,23 @@ fun adjudicateWager(id: Int, whoWon: String): Result {
 }
 
 /**
+ * Mark a wager as paid off
+ * @param id: Id of wager to mark.
+ * @return Whether or not the wager
+ */
+fun payWager(id: Int): Result {
+    val success = transaction {
+            CoffeeWager.update({
+            (CoffeeWager.id eq id)
+                    .and(CoffeeWager.state eq WagerState.Completed)
+        }) {
+            it[state] = WagerState.Paid
+        } == 1
+    }
+    return if (success) { Result.Success } else { Result.Failure }
+}
+
+/**
  * Get a Wager by id.
  */
 fun getId(id: Int): ResultRow?  {
@@ -142,7 +159,8 @@ fun getCanceledWagers(): List<ResultRow> = getRowsInState(WagerState.Canceled)
 /**
  * Get completed wagers, sorted by id.
  */
-fun getCompletedWagers(): List<ResultRow> = getRowsInState(WagerState.Completed)
+fun getCompletedWagers(): List<ResultRow> = (getRowsInState(WagerState.Completed) + getRowsInState(WagerState.Paid))
+        .sortedBy { CoffeeWager.id }
 
 private fun getRowsInState(state: WagerState): List<ResultRow> {
     return transaction {
