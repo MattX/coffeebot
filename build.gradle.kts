@@ -10,7 +10,8 @@ repositories {
 val ktorVersion = "1.3.2"
 
 dependencies {
-    implementation(kotlin("stdlib"))
+    implementation(kotlin("stdlib-jdk8"))
+    implementation("org.ocpsoft.prettytime:prettytime-nlp:5.0.0.Final")
 
     // Discord
     implementation("com.discord4j:discord4j-core:3.0.14")
