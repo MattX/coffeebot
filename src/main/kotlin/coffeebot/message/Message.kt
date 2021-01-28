@@ -9,7 +9,7 @@ fun loadMessage(user: User?, contents: String?, handle: Handle, userSnowflake: S
     } else if (!contents.startsWith('!') || "CoffeeBot" == user.name) {
         Passive(user, contents, RepliableMessageHandle(handle))
     } else {
-        Valid(user, contents, RepliableMessageHandle(handle))
+        Valid(user, contents, userSnowflake, channelSnowflake, RepliableMessageHandle(handle))
     }
 }
 

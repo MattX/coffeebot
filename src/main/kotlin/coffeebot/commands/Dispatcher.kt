@@ -38,6 +38,7 @@ class Dispatcher(private val log: Log?, miltonSecret: String?, multiChannelHandl
                 .register(help)
                 .register(reminderManager.remindme)
                 .register(reminderManager.cancelReminder)
+                .register(reminderManager.listReminders)
         this.loadFromLog()
     }
 

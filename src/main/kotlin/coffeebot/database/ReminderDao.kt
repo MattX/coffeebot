@@ -32,14 +32,15 @@ object NotFound : DeleteReminderResult()
 object NotAllowed : DeleteReminderResult()
 
 class ReminderDao {
-    fun createReminder(reminder: Reminder): Int =
-            ReminderTable.insertAndGetId {
-                it[userName] = reminder.userName
-                it[userSnowflake] = reminder.userSnowflake.asLong()
-                it[time] = reminder.time.atZone(ZoneOffset.UTC).toLocalDateTime()
-                it[message] = reminder.message
-                it[channel] = reminder.channel?.asLong()
-            }.value
+    fun createReminder(reminder: Reminder): Int = transaction {
+        ReminderTable.insertAndGetId {
+            it[userName] = reminder.userName
+            it[userSnowflake] = reminder.userSnowflake.asLong()
+            it[time] = reminder.time.atZone(ZoneOffset.UTC).toLocalDateTime()
+            it[message] = reminder.message
+            it[channel] = reminder.channel?.asLong()
+        }.value
+    }
 
     fun deleteReminder(id: Int, user: Snowflake): DeleteReminderResult = transaction {
         val reminders = ReminderTable.select { ReminderTable.id eq id }.toList()
@@ -54,16 +55,19 @@ class ReminderDao {
         Ok
     }
 
-    fun deleteReminder(id: Int): Boolean = ReminderTable.deleteWhere { ReminderTable.id eq id } == 1
+    fun deleteReminder(id: Int): Boolean = transaction {
+        ReminderTable.deleteWhere { ReminderTable.id eq id } == 1
+    }
 
-    fun listReminders(): List<Pair<Int, Reminder>> =
-            ReminderTable.selectAll().map {
-                val id = it[id].value
-                val reminder = Reminder(it[userName],
-                        Snowflake.of(it[userSnowflake]),
-                        it[time].toInstant(ZoneOffset.UTC),
-                        it[message],
-                        it[channel]?.let { Snowflake.of(it) })
-                Pair(id, reminder)
-            }
+    fun listReminders(): List<Pair<Int, Reminder>> = transaction {
+        ReminderTable.selectAll().map {
+            val id = it[ReminderTable.id].value
+            val reminder = Reminder(it[userName],
+                    Snowflake.of(it[userSnowflake]),
+                    it[time].toInstant(ZoneOffset.UTC),
+                    it[message],
+                    it[channel]?.let { Snowflake.of(it) })
+            Pair(id, reminder)
+        }
+    }
 }

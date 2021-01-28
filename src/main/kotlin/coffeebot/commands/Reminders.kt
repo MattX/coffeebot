@@ -6,6 +6,8 @@ import discord4j.core.`object`.util.Snowflake
 import org.ocpsoft.prettytime.nlp.PrettyTimeParser
 import java.time.Duration
 import java.time.Instant
+import java.time.ZoneId
+import java.time.format.DateTimeFormatter
 import java.util.*
 import java.util.concurrent.ScheduledFuture
 import java.util.concurrent.ScheduledThreadPoolExecutor
@@ -13,7 +15,11 @@ import java.util.concurrent.TimeUnit
 
 private val dateParser = PrettyTimeParser()
 private val scheduleRegex = Regex("!remindme\\s+(?<time>[^:]+)\\s*(:\\s+(?<message>.*))?")
-private val cancelRegex = Regex("!cancel-reminder\\s+(?<id>[0-9]+)")
+private val cancelRegex = Regex("!reminder-cancel\\s+(?<id>[0-9]+)")
+private val easternTime = ZoneId.of("America/New_York")
+private val formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd hh:mm:ss 'Eastern'")
+
+fun Instant.show(): String = formatter.format(this.atZone(easternTime))
 
 class ReminderManager(private val reminderDao: ReminderDao, private val handle: MultiChannelHandle) {
     private data class InMemoryTask(val reminder: Reminder, val task: ScheduledFuture<*>)
@@ -21,7 +27,7 @@ class ReminderManager(private val reminderDao: ReminderDao, private val handle: 
     private val executor = ScheduledThreadPoolExecutor(1)
     private val tasks = mutableMapOf<Int, InMemoryTask>()
 
-    private fun loadReminders() {
+    init {
         for ((id, reminder) in reminderDao.listReminders()) {
             schedule(reminder, id)
         }
@@ -46,6 +52,7 @@ class ReminderManager(private val reminderDao: ReminderDao, private val handle: 
             handle.sendUserMessage(reminder.message, reminder.userSnowflake)
         }
         reminderDao.deleteReminder(id)
+        tasks.remove(id)
     }
 
     private fun deleteReminder(id: Int, user: Snowflake): DeleteReminderResult {
@@ -82,17 +89,18 @@ class ReminderManager(private val reminderDao: ReminderDao, private val handle: 
         val reminderMessage = matched.groups["message"]?.value ?: "Hey @${message.user}, this is your reminder!"
         val reminder = Reminder(message.user.name, message.userSnowflake, instant, reminderMessage, message.channel)
         val id = addReminder(reminder)
-        message.reply("Ok, I'll remind you at $instant. If you want to cancel this reminder, type `!cancel-reminder $id`.")
+        message.reply("Ok, I'll remind you at ${instant.show()}. If you want to cancel this reminder, " +
+                "type `!reminder-cancel $id`.")
     }
 
-    val cancelReminder = Command("!cancel-reminder", "Cancel a reminder") { message ->
+    val cancelReminder = Command("!reminder-cancel", "Cancel a reminder") { message ->
         if (message.userSnowflake == null) {
             message.reply("Need a valid user snowflake to cancel a reminder.")
             return@Command
         }
         val matched = cancelRegex.matchEntire(message.contents)
         if (matched == null) {
-            message.reply("Invalid syntax. Try `!cancel-reminder ID`.")
+            message.reply("Invalid syntax. Try `!reminder-cancel ID`.")
             return@Command
         }
         val id = matched.groups["id"]!!.value.toInt()
@@ -101,5 +109,14 @@ class ReminderManager(private val reminderDao: ReminderDao, private val handle: 
             NotFound -> message.reply("$id is not a known reminder.")
             NotAllowed -> message.reply("You are not the creator of reminder $id.")
         }
+    }
+
+    val listReminders = Command("!reminder-list", "List active reminders") { message ->
+        val strings = mutableListOf("Active reminders:")
+        for ((id, inMemReminder) in tasks.entries.sortedBy { it.value.reminder.time }) {
+            val rem = inMemReminder.reminder
+            strings.add("$id. ${rem.userName}@${rem.time.show()}: ${rem.message}")
+        }
+        message.reply(strings.joinToString("\n"))
     }
 }

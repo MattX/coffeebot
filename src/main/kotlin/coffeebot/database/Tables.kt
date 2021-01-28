@@ -63,5 +63,6 @@ fun createTables() {
     transaction {
         SchemaUtils.create(CoffeeWager)
         SchemaUtils.create(CoffeePayment)
+        SchemaUtils.create(ReminderTable)
     }
 }

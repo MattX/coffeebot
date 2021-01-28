@@ -20,7 +20,7 @@ object NullHandle: Handle {
 
 class StdoutHandler(private val baseMessage: String): Handle {
     override fun sendMessage(message: String) {
-        println("BetBot: $message")
+        println("CoffeeBot: $message")
     }
 
     override fun react(emoji: String) {
