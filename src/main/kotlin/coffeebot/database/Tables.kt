@@ -5,6 +5,7 @@ import org.jetbrains.exposed.sql.Database
 import org.jetbrains.exposed.sql.transactions.transaction
 import org.jetbrains.exposed.sql.SchemaUtils
 import org.jetbrains.exposed.sql.Table
+import org.jetbrains.exposed.sql.`java-time`.datetime
 import org.jetbrains.exposed.sql.transactions.TransactionManager
 import java.sql.Connection
 
@@ -38,6 +39,12 @@ object CoffeePayment: Table() {
     val coffees = integer("coffees")
 
     override val primaryKey = PrimaryKey(from, to)
+}
+
+object ReminderTable: IntIdTable() {
+    val user = varchar("from", NAME_LENGTH)
+    val time = datetime("reminder_date")
+    val message = text("message")
 }
 
 fun connect(filename: String) {

@@ -32,6 +32,7 @@ dependencies {
     // Database
     implementation("org.jetbrains.exposed", "exposed-core", "0.28.1")
     implementation("org.jetbrains.exposed", "exposed-jdbc", "0.28.1")
+    implementation("org.jetbrains.exposed", "exposed-java-time", "0.28.1")
     implementation("org.xerial:sqlite-jdbc:3.32.3.2")
 
     // Testing
