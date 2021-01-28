@@ -1,13 +1,11 @@
 package coffeebot.commands
 
 import coffeebot.database.Log
-import coffeebot.message.Passive
-import coffeebot.message.Invalid
-import coffeebot.message.Message
-import coffeebot.message.Valid
+import coffeebot.database.ReminderDao
+import coffeebot.message.*
 
 // Each Discord server should probably get its own Dispatcher so it has its own state
-class Dispatcher(private val log: Log?, miltonSecret: String?) {
+class Dispatcher(private val log: Log?, miltonSecret: String?, multiChannelHandle: MultiChannelHandle) {
 
     private val registered = mutableListOf<Command>()
     private val miltonCommand: PassiveCommand? = if (miltonSecret != null) {
@@ -24,6 +22,8 @@ class Dispatcher(private val log: Log?, miltonSecret: String?) {
         it.reply("Commands:\n\t$helpString")
     }
 
+    private val reminderManager = ReminderManager(ReminderDao(), multiChannelHandle)
+
     init {
         this.register(ping)
                 .register(bet)
@@ -33,10 +33,11 @@ class Dispatcher(private val log: Log?, miltonSecret: String?) {
                 .register(list)
                 .register(lisp)
                 .register(pay)
-                .register(remindme)
                 .register(source)
                 .register(totals)
                 .register(help)
+                .register(reminderManager.remindme)
+                .register(reminderManager.cancelReminder)
         this.loadFromLog()
     }
 

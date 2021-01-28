@@ -1,8 +1,9 @@
 package coffeebot.message
 
+import discord4j.core.`object`.util.Snowflake
 import kotlin.math.min
 
-fun loadMessage(user: User?, contents: String?, handle: Handle): Message {
+fun loadMessage(user: User?, contents: String?, handle: Handle, userSnowflake: Snowflake?, channelSnowflake: Snowflake?): Message {
     return if (contents == null || user == null) {
         Invalid
     } else if (!contents.startsWith('!') || "CoffeeBot" == user.name) {
@@ -40,10 +41,17 @@ class RepliableMessageHandle(private val handle: Handle) : RepliableMessage {
 
 sealed class Message
 
-data class Valid(val user: User, val contents: String, private val handle: RepliableMessage): Message(),
-        RepliableMessage by handle
+data class Valid(val user: User,
+                 val contents: String,
+                 val userSnowflake: Snowflake?,
+                 val channel: Snowflake?,
+                 private val handle: RepliableMessage): Message(), RepliableMessage by handle {
+    constructor(user: User, contents: String, handle: RepliableMessage) : this(user, contents, null, null , handle)
+}
 
-data class Passive(val user: User, val contents: String, private val handle: RepliableMessage): Message(),
-        RepliableMessage by handle
+data class Passive(val user: User,
+                   val contents: String,
+                   private val handle: RepliableMessage):
+        Message(), RepliableMessage by handle
 
 object Invalid: Message()

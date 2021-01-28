@@ -20,11 +20,7 @@ import coffeebot.database.getId
 import coffeebot.database.getProposals
 import coffeebot.database.adjudicateWager
 import coffeebot.database.proposeWager
-import coffeebot.message.Message
-import coffeebot.message.NullHandle
-import coffeebot.message.RepliableMessageHandle
-import coffeebot.message.User
-import coffeebot.message.Valid
+import coffeebot.message.*
 import org.jetbrains.exposed.sql.ResultRow
 import org.junit.Test
 import java.io.File
@@ -212,7 +208,7 @@ class CoffeeWagerTest {
 
     @Test
     fun testFlow() {
-        val dispatcher = Dispatcher(null, null)
+        val dispatcher = Dispatcher(null, null, StdoutMultiChannelHandle())
         dispatcher.process(createMessage("gabe", "!bet 1 coffee that $defaultTerms"))
         dispatcher.process(createMessage("matt", "!accept 1"))
         dispatcher.process(createMessage("jason", "!adjudicate 1 matt"))
@@ -223,7 +219,7 @@ class CoffeeWagerTest {
 
     @Test
     fun testAsymmetricBet() {
-        val dispatcher = Dispatcher(null, null)
+        val dispatcher = Dispatcher(null, null, StdoutMultiChannelHandle())
         dispatcher.process(createMessage("gabe", "!bet 2 coffees to 3 coffees that $defaultTerms"))
         dispatcher.process(createMessage("matt", "!accept 1"))
         dispatcher.process(createMessage("jason", "!adjudicate 1 matt"))
@@ -234,7 +230,7 @@ class CoffeeWagerTest {
 
     @Test
     fun testBetWordings() {
-        val dispatcher = Dispatcher(null, null)
+        val dispatcher = Dispatcher(null, null, StdoutMultiChannelHandle())
         var expectedEntries = 0
 
         fun testWording(wording: String) {
@@ -257,7 +253,7 @@ class CoffeeWagerTest {
 
     @Test
     fun testAcceptBet() {
-        val dispatcher = Dispatcher(null, null)
+        val dispatcher = Dispatcher(null, null, StdoutMultiChannelHandle())
 
         assertEquals(getActiveWagers().size, 0)
         dispatcher.process(createMessage("gAb3", "!bet 1 coffee that x"))

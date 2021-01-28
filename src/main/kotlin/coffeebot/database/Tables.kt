@@ -42,9 +42,13 @@ object CoffeePayment: Table() {
 }
 
 object ReminderTable: IntIdTable() {
-    val user = varchar("from", NAME_LENGTH)
+    val userName = varchar("user_name", NAME_LENGTH)
+    val userSnowflake = long("user_snowflake")
     val time = datetime("reminder_date")
     val message = text("message")
+
+    /** If channel is null, the message should be sent to `user` directly */
+    val channel = long("channel_snowflake").nullable()
 }
 
 fun connect(filename: String) {

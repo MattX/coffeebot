@@ -22,7 +22,9 @@ fun MessageCreateEvent.getChannel(): MessageChannel? {
 fun MessageCreateEvent.toCoffeeBotMessage(): Message {
     val user = this.getUser()
     val contents = this.getContents()
-    return loadMessage(user, contents, DiscordHandle(this))
+    val userSnowflake = this.message.author.orElse(null)?.id
+    val channelSnowflake = this.message.channelId
+    return loadMessage(user, contents, DiscordHandle(this), userSnowflake, channelSnowflake)
 }
 
 fun MessageCreateEvent.getUser(): User? {
